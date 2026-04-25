@@ -1,0 +1,86 @@
+Intro + Summary
+Our ALG Project is a simulated Micromouse-style maze solver using SDL Plotter. Booth provides everything and our main job is to improve the logic inside DIRECTION nextMove(). Each time the driver asks for a move, our function must return a direction for the racer to move. 
+
+We can use car->look(direction) to check whether there is a wall in that direction, and we should use that information to make smarter moves than the current random algorithm. Since we get three attempts on the same maze, the goal is to make the racer learn from earlier runs by storing information about the maze, then use that memory to perform better in later attempts.
+
+Constraints / important details
+	• The main algorithm is inside DIRECTION nextMove()
+		○ I'm pretty sure we have to do all our work in this one function 
+	• The starter algorithm is random: 
+		○ It checks which directions do not have walls. 
+		○ It adds those directions to a list. 
+		○ It randomly chooses one safe direction. 
+	• We get 3 attempts on the same maze. 
+	• Static variables can be used to remember information between calls to nextMove() and between attempts. 
+	• The goal is not just to finish, but to get the fastest possible run, because the best time out of the 3 attempts counts. 
+	• Minimum requirement is to perform better than the provided random algorithm. 
+	• If the mouse takes longer than around 2 minutes, Booth will kill the run. 
+
+Ask everyone for ideas on algorithms so far or how we should split up our runs:
+	• Joel
+		○ Using dequeue instead of a vector to keep track of path of the maze
+			§ This is because we don’t know where we are in the maze, we also need to push front
+			§ If we find a bad path, set the weight of the path to an arbitrarily bad value, so that we do not need to explore that path anymore
+			§ Recommends using BFS since it gets the shortest path
+			§ Use matrix because of how dense the maze/graph is
+	• Zain + Scott + Me
+		○ Use DFS on first path to understand the maze
+		○ Then use BFS to get the shortest path
+		○ Then finally use our last attempt to actually get the shortest path
+			§ Ideally, this last attempt would be our best attempt since the other 2 attempts would've set this attempt up for the best time
+		○ Use a matrix to store everything 
+	• Notes on Lucas' progress
+		○ First algorithm, hugs left wall because that's a basic algorithm
+			§ Did 40 runs on random mazes 2000x2000
+		○ DFS was the fastest
+		○ BFS was also run 40 runs
+		○ Wants to do DFS first
+	
+
+Let Lucas explain his progress
+
+My idea:
+For the first run, we can use DFS so the racer explores paths in a more organized way instead of moving randomly. While it explores, we store what it sees, like walls, open paths, and visited cells, using static variables.
+
+Then after we have some kind of map, we can use BFS to find the shortest known path from the start to the finish (since every move has the same cost). Then for the final attempt, the racer can just follow that saved path instead of exploring again.
+
+
+Get GitHub up and running
+
+Help anyone with SDL Plotter if need be
+
+Split up work + start working if can (my idea so far):
+Me - Project Lead / Integration + Final Run
+	• Combine everyone’s logic into one working function (review pull requests)
+	• Debug and make sure the whole thing compiles and runs
+	• Help everyone else
+
+Joel - Static Memory / Maze Storage
+	• Decide what static variables we need inside nextMove().
+	• Store visited cells, wall/open path information, current attempt, and saved BFS path.
+	• Make sure memory carries over between the 3 attempts but resets the right things when a new run starts.
+
+Lucas - DFS / Exploration
+	• Build the first-attempt exploration logic.
+	• Use car->look(direction) to choose safe moves.
+	• Prefer unvisited cells and backtrack or choose least-visited cells when stuck.
+	• Goal: help the racer discover the maze and reach the finish at least once.
+
+Scott - BFS / Shortest Known Path
+	• Use the saved maze information to find the shortest known path from (0,0) to (34,19).
+	• Reconstruct that path as a list/vector of directions.
+	• BFS should run on the known map after exploration.
+
+Zain - Backup / Algorithm Improvement
+	• Improve the exploration strategy using tests like random, left-hand/right-hand rule, and DFS-style movement.
+	• Help create a backup plan if BFS/path-following is not ready or if the saved path is incomplete.
+	• Help test which movement strategy reaches the goal most consistently.
+
+
+Meetings (goal is to meet 2 times before weekend, then 1 time at weekend to finalize everything)
+	• Tuesday 4 pm (first check, assign more work)
+	• Thursday 4 pm (second check, should be nearly complete or done, make sure to push all work to personal branch)
+	• Saturday 1 pm (finalizing everything, make mock tests, and turn in)
+
+Questions to ask Booth:
+	• Can we have other #include statements for other DS like stack, queue, etc. ?
