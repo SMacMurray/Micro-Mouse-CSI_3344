@@ -20,14 +20,109 @@ public:
     RaceCarDriver(Racer* p = nullptr): car{p}{}
 
     DIRECTION nextMove(){
-        vector<DIRECTION> pool;
+        // Keep maze knowledge between calls and between attempts.
+        static vector<vector<int> > visits(maxRow, vector<int>(maxCol, 0));
+        static vector<point> dfsPath;
+        static point lastLocation(-1, -1);
 
-        if(!car->look(EAST))   pool.push_back(EAST);
-        if(!car->look(SOUTH))  pool.push_back(SOUTH);
-        if(!car->look(NORTH))  pool.push_back(NORTH);
-        if(!car->look(WEST))   pool.push_back(WEST);
+        point current = car->getLocation();
 
-        return pool[rand() % pool.size()];
+        // A new attempt restarts at the beginning, so rebuild the DFS stack there.
+        if(current.x == 0 && current.y == 0 &&
+           !(lastLocation.x == 0 && lastLocation.y == 0)){
+            dfsPath.clear();
+        }
+
+        if(dfsPath.empty() ||
+           dfsPath.back().x != current.x ||
+           dfsPath.back().y != current.y){
+            dfsPath.push_back(current);
+        }
+
+        if(current.x != lastLocation.x || current.y != lastLocation.y){
+            visits[current.y][current.x]++;
+            lastLocation = current;
+        }
+
+        vector<DIRECTION> safeMoves;
+        if(!car->look(EAST))  safeMoves.push_back(EAST);
+        if(!car->look(SOUTH)) safeMoves.push_back(SOUTH);
+        if(!car->look(NORTH)) safeMoves.push_back(NORTH);
+        if(!car->look(WEST))  safeMoves.push_back(WEST);
+
+        // DFS: always try an unvisited safe neighbor first.
+        for(DIRECTION move : safeMoves){
+            point next = current;
+
+            if(move == EAST)  next.x++;
+            if(move == SOUTH) next.y++;
+            if(move == NORTH) next.y--;
+            if(move == WEST)  next.x--;
+
+            if(visits[next.y][next.x] == 0){
+                dfsPath.push_back(next);
+                return move;
+            }
+        }
+
+        // If there is no new cell to explore, backtrack along the DFS path.
+        if(dfsPath.size() >= 2){
+            point parent = dfsPath[dfsPath.size() - 2];
+
+            if(parent.x == current.x + 1 && !car->look(EAST)){
+                dfsPath.pop_back();
+                return EAST;
+            }
+            if(parent.y == current.y + 1 && !car->look(SOUTH)){
+                dfsPath.pop_back();
+                return SOUTH;
+            }
+            if(parent.y == current.y - 1 && !car->look(NORTH)){
+                dfsPath.pop_back();
+                return NORTH;
+            }
+            if(parent.x == current.x - 1 && !car->look(WEST)){
+                dfsPath.pop_back();
+                return WEST;
+            }
+        }
+
+        // Last fallback: choose the safe move with the smallest visit count.
+        DIRECTION bestMove = safeMoves[0];
+        point bestNext = current;
+
+        if(bestMove == EAST)  bestNext.x++;
+        if(bestMove == SOUTH) bestNext.y++;
+        if(bestMove == NORTH) bestNext.y--;
+        if(bestMove == WEST)  bestNext.x--;
+
+        int bestCount = visits[bestNext.y][bestNext.x];
+
+        for(DIRECTION move : safeMoves){
+            point next = current;
+
+            if(move == EAST)  next.x++;
+            if(move == SOUTH) next.y++;
+            if(move == NORTH) next.y--;
+            if(move == WEST)  next.x--;
+
+            if(visits[next.y][next.x] < bestCount){
+                bestCount = visits[next.y][next.x];
+                bestMove = move;
+                bestNext = next;
+            }
+        }
+
+        if(dfsPath.size() >= 2 &&
+           dfsPath[dfsPath.size() - 2].x == bestNext.x &&
+           dfsPath[dfsPath.size() - 2].y == bestNext.y){
+            dfsPath.pop_back();
+        }
+        else{
+            dfsPath.push_back(bestNext);
+        }
+
+        return bestMove;
     }
 
 };
