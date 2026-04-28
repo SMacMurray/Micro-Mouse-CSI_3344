@@ -20,6 +20,12 @@ public:
     RaceCarDriver(Racer* p = nullptr): car{p}{}
 
     DIRECTION nextMove(){
+        #include <deque>
+        
+        static deque<deque<point>> adjMatrix;
+        static int lowestX = 0, lowestY = 0; // Subtract the point's x/y to get to the deque[0][0]
+        // adjMatrix[0 - lowestX][0 - lowestY];
+        
         vector<DIRECTION> pool;
 
         if(!car->look(EAST))   pool.push_back(EAST);
