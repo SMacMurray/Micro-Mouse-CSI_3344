@@ -21,7 +21,7 @@ public:
 
     DIRECTION nextMove(){
         // Keep maze knowledge between calls and between attempts.
-        static vector<vector<int> > visits(maxRow, vector<int>(maxCol, 0));
+        static vector<vector<bool>> visited(maxRow, vector<bool>(maxCol, false));
         static vector<point> dfsPath;
         static point lastLocation(-1, -1);
 
@@ -40,7 +40,7 @@ public:
         }
 
         if(current.x != lastLocation.x || current.y != lastLocation.y){
-            visits[current.y][current.x]++;
+            visited[current.y][current.x] = true;
             lastLocation = current;
         }
 
@@ -59,7 +59,7 @@ public:
             if(move == NORTH) next.y--;
             if(move == WEST)  next.x--;
 
-            if(visits[next.y][next.x] == 0){
+            if(!visited[next.y][next.x]){
                 dfsPath.push_back(next);
                 return move;
             }
@@ -87,42 +87,8 @@ public:
             }
         }
 
-        // Last fallback: choose the safe move with the smallest visit count.
-        DIRECTION bestMove = safeMoves[0];
-        point bestNext = current;
-
-        if(bestMove == EAST)  bestNext.x++;
-        if(bestMove == SOUTH) bestNext.y++;
-        if(bestMove == NORTH) bestNext.y--;
-        if(bestMove == WEST)  bestNext.x--;
-
-        int bestCount = visits[bestNext.y][bestNext.x];
-
-        for(DIRECTION move : safeMoves){
-            point next = current;
-
-            if(move == EAST)  next.x++;
-            if(move == SOUTH) next.y++;
-            if(move == NORTH) next.y--;
-            if(move == WEST)  next.x--;
-
-            if(visits[next.y][next.x] < bestCount){
-                bestCount = visits[next.y][next.x];
-                bestMove = move;
-                bestNext = next;
-            }
-        }
-
-        if(dfsPath.size() >= 2 &&
-           dfsPath[dfsPath.size() - 2].x == bestNext.x &&
-           dfsPath[dfsPath.size() - 2].y == bestNext.y){
-            dfsPath.pop_back();
-        }
-        else{
-            dfsPath.push_back(bestNext);
-        }
-
-        return bestMove;
+        // return any legal move to avoid undefined behavior.
+        return safeMoves[0];
     }
 
 };
