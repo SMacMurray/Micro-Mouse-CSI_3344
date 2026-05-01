@@ -132,7 +132,7 @@ clock.reset();
 			legalMove(robot, walls);
 			robot.draw(g);
 			g.update();
-			g.Sleep(150);
+			// g.Sleep(150);
 		}
 		else{
 			if(robot.Finished()){

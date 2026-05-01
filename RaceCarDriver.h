@@ -20,74 +20,104 @@ public:
     RaceCarDriver(Racer* p = nullptr): car{p}{}
 
     DIRECTION nextMove(){
-        // Keep maze knowledge between calls and between attempts.
-        static vector<vector<bool>> visited(maxRow, vector<bool>(maxCol, false));
-        static vector<point> dfsPath;
-        static point lastLocation(-1, -1);
+        // Remember which spots we have already been to.
+        static vector<vector<bool>> visited(2 * row + 1,
+                                            vector<bool>(2 * col + 1, false));
+        // Keep the current path so we can backtrack later.
+        static vector<point> pathStack;
+        // Save the first spot as our reference point.
+        static point origin;
+        static bool originSet = false;
+        // Remember the last relative position we were at.
+        static point lastRelative(-1, -1);
+        // Extra pathfinding data kept for later use. (BFS)
+        static queue<point> q;
+        static map<int, int> parent;
+        static vector<DIRECTION> shortestPath;
 
+        // Shift relative coordinates into valid array indexes.
+        const int yOffset = row;
+        const int xOffset = col;
+
+        // Get the car's current location.
         point current = car->getLocation();
-
-        // A new attempt restarts at the beginning, so rebuild the DFS stack there.
-        if(current.x == 0 && current.y == 0 &&
-           !(lastLocation.x == 0 && lastLocation.y == 0)){
-            dfsPath.clear();
+        // Set the starting location once.
+        if(!originSet){
+            origin = current;
+            originSet = true;
         }
 
-        if(dfsPath.empty() ||
-           dfsPath.back().x != current.x ||
-           dfsPath.back().y != current.y){
-            dfsPath.push_back(current);
+        // Convert the current location into coordinates relative to the start.
+        point relative(current.x - origin.x, current.y - origin.y);
+
+        // If we return to the start, reset only the current path.
+        if(relative.x == 0 && relative.y == 0 &&
+           !(lastRelative.x == 0 && lastRelative.y == 0)){
+            pathStack.clear();
         }
 
-        if(current.x != lastLocation.x || current.y != lastLocation.y){
-            visited[current.y][current.x] = true;
-            lastLocation = current;
+        // Add this spot to the current path if it is not already on top.
+        if(pathStack.empty() ||
+           pathStack.back().x != relative.x ||
+           pathStack.back().y != relative.y){
+            pathStack.push_back(relative);
         }
 
+        // Mark this spot as visited when we enter it.
+        if(relative.x != lastRelative.x || relative.y != lastRelative.y){
+            if(relative.y + yOffset >= 0 && relative.y + yOffset < (int)visited.size() &&
+               relative.x + xOffset >= 0 && relative.x + xOffset < (int)visited[0].size()){
+                visited[relative.y + yOffset][relative.x + xOffset] = true;
+            }
+            lastRelative = relative;
+        }
+
+        // Collect all moves that are not blocked by a wall.
         vector<DIRECTION> safeMoves;
         if(!car->look(EAST))  safeMoves.push_back(EAST);
         if(!car->look(SOUTH)) safeMoves.push_back(SOUTH);
         if(!car->look(NORTH)) safeMoves.push_back(NORTH);
         if(!car->look(WEST))  safeMoves.push_back(WEST);
 
-        // DFS: always try an unvisited safe neighbor first.
+        // Try the first safe move that leads to a new spot.
         for(DIRECTION move : safeMoves){
-            point next = current;
+            point next = relative;
 
             if(move == EAST)  next.x++;
             if(move == SOUTH) next.y++;
             if(move == NORTH) next.y--;
             if(move == WEST)  next.x--;
 
-            if(!visited[next.y][next.x]){
-                dfsPath.push_back(next);
+            if(next.y + yOffset >= 0 && next.y + yOffset < (int)visited.size() &&
+               next.x + xOffset >= 0 && next.x + xOffset < (int)visited[0].size() &&
+               !visited[next.y + yOffset][next.x + xOffset]){
                 return move;
             }
         }
 
-        // If there is no new cell to explore, backtrack along the DFS path.
-        if(dfsPath.size() >= 2){
-            point parent = dfsPath[dfsPath.size() - 2];
+        // If all safe spots were visited, go back along the path.
+        if(pathStack.size() >= 2){
+            point parent = pathStack[pathStack.size() - 2];
 
-            if(parent.x == current.x + 1 && !car->look(EAST)){
-                dfsPath.pop_back();
+            if(parent.x == relative.x + 1 && !car->look(EAST)){
+                pathStack.pop_back();
                 return EAST;
             }
-            if(parent.y == current.y + 1 && !car->look(SOUTH)){
-                dfsPath.pop_back();
+            if(parent.y == relative.y + 1 && !car->look(SOUTH)){
+                pathStack.pop_back();
                 return SOUTH;
             }
-            if(parent.y == current.y - 1 && !car->look(NORTH)){
-                dfsPath.pop_back();
+            if(parent.y == relative.y - 1 && !car->look(NORTH)){
+                pathStack.pop_back();
                 return NORTH;
             }
-            if(parent.x == current.x - 1 && !car->look(WEST)){
-                dfsPath.pop_back();
+            if(parent.x == relative.x - 1 && !car->look(WEST)){
+                pathStack.pop_back();
                 return WEST;
             }
         }
 
-        // return any legal move to avoid undefined behavior.
+        // If needed, make any legal move as a fallback.
         return safeMoves[0];
     }
 
