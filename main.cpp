@@ -12,9 +12,6 @@
 #include "timer.h"
 using namespace std;
 
-// COMPILE WITH G++, SCOTT
-// g++ .\main.cpp .\SDL_Plotter.cpp .\constants.cpp -o bin -lmingw32 -lSDL2main -lSDL2 -lSDL2_mixer
-
 void drawCircle(point loc, int size, color c, SDL_Plotter& g);
 void drawMaze(string fName, SDL_Plotter& g);
 
@@ -63,7 +60,7 @@ bool legalMove(Racer* r, const set<pair<int,int> >& walls);
 
 int main(int argc, char ** argv)
 {
-    cout << "I RAN!" << endl;
+
 	Timer clock;
 	bool doneOnce = false;
 	bool nextRun = true;
@@ -125,7 +122,7 @@ clock.reset();
 				legalMove(robot, walls);
 				robot.draw(g);
 				g.update();
-				//g.Sleep(500);
+				g.Sleep(500);
 
 			}
 
@@ -136,6 +133,7 @@ clock.reset();
 			legalMove(robot, walls);
 			robot.draw(g);
 			g.update();
+			// g.Sleep(150);
 		}
 		else{
 			if(robot.Finished()){
