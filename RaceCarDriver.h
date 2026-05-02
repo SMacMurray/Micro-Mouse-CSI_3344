@@ -159,35 +159,47 @@ public:
                 if (u.y == exit.y && u.x == exit.x) {
                     q = {};
                 }
+                
+                
                 // If is not the exit, look for surrounding points, whose Direction back to the start and previous point will be kept.
+                // Checks whether the point exists in the vector of visiteds, and whether that point has been visited
                 else {
-                    if (visited[u.y + yOffset][u.x + 1 + xOffset] &&
-                        !bfsVisited[u.y + yOffset][u.x + 1 + xOffset]) {
+                    vector<point> safePoints;
+                    if (u.x + 1 + xOffset >= 0 && u.x + 1 + xOffset < visited[0].size() &&
+                        u.y + yOffset >= 0 && u.y + yOffset < visited.size() &&
+                        visited[u.y + yOffset][u.x + 1 + xOffset] &&
+                            !bfsVisited[u.y + yOffset][u.x + 1 + xOffset]) {
                         point v(u.x + 1, u.y);
                         q.push(v);
                         bfsData[v.y + xOffset][v.x + yOffset].first = WEST;
                         bfsData[v.y + xOffset][v.x + yOffset].second = u;
                         bfsVisited[v.y + xOffset][v.x + yOffset] = true;
                     }
-                    if (visited[u.y + 1 + xOffset][u.x + xOffset] &&
-                        !bfsVisited[u.y + 1 + xOffset][u.x + xOffset]) {
+                    if (u.x + xOffset >= 0 && u.x + xOffset < visited[0].size() &&
+                        u.y + 1 + yOffset >= 0 && u.y + 1 + yOffset < visited.size() &&
+                        visited[u.y + 1 + xOffset][u.x + xOffset] &&
+                            !bfsVisited[u.y + 1 + xOffset][u.x + xOffset]) {
                         point v = point(u.x, u.y + 1);
                         q.push(v);
                         bfsData[v.y + xOffset][v.x + yOffset].first = NORTH;
                         bfsData[v.y + xOffset][v.x + yOffset].second = u;
                         bfsVisited[v.y + xOffset][v.x + yOffset] = true;
                     }
-                    if (visited[u.y + yOffset][u.x - 1 + xOffset] &&
-                        !bfsVisited[u.y + yOffset][u.x - 1 + xOffset]) {
-                        point v(u.x + 1, u.y);
+                    if (u.x - 1 + xOffset >= 0 && u.x - 1 + xOffset < visited[0].size() &&
+                        u.y + yOffset >= 0 && u.y + yOffset < visited.size() &&
+                        visited[u.y + yOffset][u.x - 1 + xOffset] &&
+                            !bfsVisited[u.y + yOffset][u.x - 1 + xOffset]) {
+                        point v(u.x - 1, u.y);
                         q.push(v);
                         bfsData[v.y + xOffset][v.x + yOffset].first = EAST;
                         bfsData[v.y + xOffset][v.x + yOffset].second = u;
                         bfsVisited[v.y + xOffset][v.x + yOffset] = true;
                     }
-                    if (visited[u.y - 1 + xOffset][u.x + xOffset] &&
-                        !bfsVisited[u.y - 1 + xOffset][u.x + xOffset]) {
-                        point v(u.x, u.y + 1);
+                    if (u.x + xOffset >= 0 && u.x + xOffset < visited[0].size() &&
+                        u.y - 1 + yOffset >= 0 && u.y - 1 + yOffset < visited.size() &&
+                        visited[u.y - 1 + xOffset][u.x + xOffset] &&
+                            !bfsVisited[u.y - 1 + xOffset][u.x + xOffset]) {
+                        point v(u.x, u.y - 1);
                         q.push(v);
                         bfsData[v.y + xOffset][v.x + yOffset].first = SOUTH;
                         bfsData[v.y + xOffset][v.x + yOffset].second = u;
